@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Implementation of a ERC-20 Token using Hyperledger Fabric
 
 ## Pre-requisites
@@ -24,6 +23,3 @@
     ```shell
     ./start.sh
     ```
-=======
-# Implementation of an ERC-20 Token in Hyperledger Fabric
->>>>>>> 036bf1ca5906b573cc22a9be204bbc8e33fb70dd
