@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Pre-requisites](#pre-requisites)
+- [Hyperledger Fabric network](#hyperledger-fabric-network)
 - [Run](#run)
     - [Deploy the network](#deploy-the-network)
 
@@ -14,6 +15,24 @@
 1. Golang
 
 > Note: This has been developed using macOS, other OS have not been tested.
+
+## Hyperledger Fabric network
+
+The Hyperledger Fabric network consists of: 
+* One orderer
+    * orderer.example.com
+* One organization
+    * MSPID: Org1MSP
+    * Two peers:
+        * peer0.org1.example.com
+        * peer1.org1.example.com
+    * One CouchDB state database deployment for each peer
+    * Fabric CA
+        * ca.org1.example.com 
+* Fabric CLI
+
+![Network deployment](./img/topology.png)
+
 
 ## Run
 
@@ -40,4 +59,5 @@
     ```shell
     ./teardown.sh
     ```
+![Network deployment](./img/teardown.png)
 
