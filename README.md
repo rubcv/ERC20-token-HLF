@@ -28,10 +28,14 @@
     cd network-files
     ./generate.sh
     ```
+![Network deployment](./img/generate.png)
+
 1. Deploy the network.
     ```shell
     ./start.sh
     ```
+![Network deployment](./img/start.png)
+
 1. Teardown the network
     ```shell
     ./teardown.sh
