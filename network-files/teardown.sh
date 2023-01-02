@@ -19,7 +19,7 @@ else
 fi
 
 # Remove certificates and artifacts
-rm -rf ./artifacts
-rm -rf ./crypto-config
+rm -rf artifacts/*
+rm -rf crypto-config/*
 
 # Your system is now clean

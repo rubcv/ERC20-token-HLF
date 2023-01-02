@@ -3,8 +3,6 @@ set -ev
 # Set env vars
 export CHANNEL_NAME=default
 
-docker-compose -f docker-compose.yml down
-
 docker-compose -f docker-compose.yml up -d
 
 # Wait for Hyperledger Fabric to start

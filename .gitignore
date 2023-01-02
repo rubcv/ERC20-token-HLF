@@ -1,6 +1,10 @@
 # Hyperledger Fabric samples
 fabric-samples
 
+# Network artifacts and certificates
+network-files/artifacts
+network-files/crypto-config
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -15,4 +19,4 @@ fabric-samples
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
