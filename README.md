@@ -6,6 +6,9 @@
 - [Hyperledger Fabric network](#hyperledger-fabric-network)
 - [Run](#run)
     - [Deploy the network](#deploy-the-network)
+    - [Web Application](#web-application)
+        - [Installation](#Installation)
+        - [Running the app](#running-the-app)
 
 ## Pre-requisites
 
@@ -63,3 +66,29 @@ The Hyperledger Fabric network consists of:
     ```
 ![Network deployment](./img/teardown.png)
 
+### Web Application
+
+A Web Application is available made in Nest.js
+
+```shell
+cd webapp/
+```
+
+#### Installation
+
+```shell
+npm install
+```
+
+#### Running the app
+
+```shell
+# development
+npm run start
+
+# watch mode
+npm run start:dev
+
+# production mode
+npm run start:prod
+```
