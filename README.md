@@ -1,4 +1,4 @@
-# Implementation of a ERC-20 Token using Hyperledger Fabric
+# ERC-20 Token implementing methods for Hashed Time-Lock transactions on Hyperledger Fabric
 
 ## Table of contents
 
@@ -42,6 +42,8 @@ The Hyperledger Fabric network consists of:
     ```shell
     ./install-fabric.sh
     ```
+    this will generate a `fabric-samples` folder inside the project directory.
+
 1. Generate the network artifacts.
     ```shell
     cd network-files
