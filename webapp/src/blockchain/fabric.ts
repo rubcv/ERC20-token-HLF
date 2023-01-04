@@ -21,7 +21,7 @@ const channelName = 'default';
 const chaincodeName = 'erc20token';
 const mspOrg1 = 'Org1MSP';
 const walletPath = path.join(__dirname, 'wallet');
-const org1UserId = 'appUser5';
+const org1UserId = 'User1';
 
 export class Fabric {
     public contract;

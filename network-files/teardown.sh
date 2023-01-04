@@ -18,8 +18,4 @@ else
     docker rmi -f $DOCKER_IMAGE_IDS
 fi
 
-# Remove certificates and artifacts
-rm -rf artifacts/*
-rm -rf crypto-config/*
-
 # Your system is now clean
