@@ -3,17 +3,16 @@ import { Fabric } from './blockchain/fabric';
 
 @Injectable()
 export class AppService {
-  public blockchain: any;
-
+  public blockchain: Fabric;
   constructor() {
     this.blockchain = new Fabric();
   }
 
-  getHello(): string {
-    return 'Hello World!';
+  public async query(): Promise<any> {
+    return this.blockchain.query('get', 'key1');
   }
 
-  invoke(): any {
-    return 'result';
+  public async invoke(): Promise<any> {
+    return this.blockchain.invoke('set', 'key1', 'value1');
   }
 }

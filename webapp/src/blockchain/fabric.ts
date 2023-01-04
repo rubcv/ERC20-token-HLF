@@ -21,7 +21,7 @@ const channelName = 'default';
 const chaincodeName = 'erc20token';
 const mspOrg1 = 'Org1MSP';
 const walletPath = path.join(__dirname, 'wallet');
-const org1UserId = 'User2';
+const org1UserId = 'User1';
 
 export class Fabric {
     public contract;
@@ -90,5 +90,15 @@ export class Fabric {
         } catch (err) {
             console.log(err);
         }
+    }
+
+    public async query(method, ...args): Promise<string> {
+        let result = await this.contract.evaluateTransaction(method, ...args);
+        return result.toString();
+    }
+
+    public async invoke(method, ...args): Promise<any> {    
+        const result = await this.contract.submitTransaction(method, ...args);
+        return result.toString();
     }
 }

@@ -85,6 +85,6 @@ npm install
 #### Running the app
 
 ```shell
-npm run start
+npm start
 ```
 ![Web Application](./img/webapp-start.png)

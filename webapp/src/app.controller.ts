@@ -6,12 +6,12 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/query')
-  getHello(): string {
-    return this.appService.getHello();
+  public async Query(): Promise<any> {
+    return this.appService.query();
   }
 
   @Post('/invoke')
-  public async Invoke(): Promise<string> {
+  public async Invoke(): Promise<any> {
     return this.appService.invoke();
   }
 }
