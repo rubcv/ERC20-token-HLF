@@ -87,3 +87,4 @@ npm install
 ```shell
 npm run start
 ```
+![Web Application](./img/webapp-start.png)

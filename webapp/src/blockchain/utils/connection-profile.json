@@ -37,7 +37,7 @@
     },
     "orderers": {
         "orderer.example.com": {
-          "url": "grpc://localhost:7050",
+          "url": "grpcs://localhost:7050",
           "grpcOptions": {
             "ssl-target-name-override": "orderer.example.com",
             "grpc-max-send-message-length": 9000000
@@ -49,9 +49,9 @@
       },
     "peers": {
         "peer0.org1.example.com": {
-            "url": "grpc://localhost:7051",
+            "url": "grpcs://localhost:7051",
             "tlsCACerts": {
-                "pem": "../network-files/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem"
+                "path": "../network-files/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem"
             },
             "grpcOptions": {
                 "ssl-target-name-override": "peer0.org1.example.com",
@@ -59,9 +59,9 @@
             }
         },
         "peer1.org1.example.com": {
-            "url": "grpc://localhost:8051",
+            "url": "grpcs://localhost:8051",
             "tlsCACerts": {
-                "pem": "../network-files/crypto-config/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem"
+                "path": "../network-files/crypto-config/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem"
             },
             "grpcOptions": {
                 "ssl-target-name-override": "peer1.org1.example.com",
