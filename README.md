@@ -12,10 +12,12 @@
 
 ## Pre-requisites
 
-1. Hyperledger Fabric docker images and binaries
+1. Hyperledger Fabric
 1. Docker
 1. Docker-Compose
 1. Golang
+1. NodeJS / TypeScript
+1. npm
 
 > Note: This has been developed using macOS, other OS have not been tested.
 
