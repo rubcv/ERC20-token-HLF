@@ -92,13 +92,13 @@ export class Fabric {
         }
     }
 
-    public async query(method, ...args): Promise<string> {
-        let result = await this.contract.evaluateTransaction(method, ...args);
+    public async query(func, ...args): Promise<string> {
+        let result = await this.contract.evaluateTransaction(func, ...args);
         return result.toString();
     }
 
-    public async invoke(method, ...args): Promise<any> {    
-        const result = await this.contract.submitTransaction(method, ...args);
+    public async invoke(func, ...args): Promise<any> {    
+        const result = await this.contract.submitTransaction(func, ...args);
         return result.toString();
     }
 }

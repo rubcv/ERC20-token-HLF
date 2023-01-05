@@ -8,11 +8,11 @@ export class AppService {
     this.blockchain = new Fabric();
   }
 
-  public async query(): Promise<any> {
-    return this.blockchain.query('get', 'key1');
+  public async query(func: string, args: any): Promise<any> {
+    return this.blockchain.query(func, ...args);
   }
 
-  public async invoke(): Promise<any> {
-    return this.blockchain.invoke('set', 'key1', 'value1');
+  public async invoke(func: string, args: any): Promise<any> {
+    return this.blockchain.invoke(func, ...args);
   }
 }
