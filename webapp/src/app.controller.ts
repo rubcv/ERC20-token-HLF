@@ -6,12 +6,14 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/query')
-  public async Query(@Body() func: string, @Body() args: any): Promise<any> {
-    return this.appService.query(func, args);
+  public async Query(@Body() body: any): Promise<any> {
+    const response = await this.appService.query(body.function, body.args);
+    return { payload: response };
   }
 
   @Post('/invoke')
-  public async Invoke(@Body() func: string, @Body() args: any): Promise<any> {
-    return this.appService.invoke(func, args);
+  public async Invoke(@Body() body: any): Promise<any> {
+    const response = await this.appService.invoke(body.function, body.args);
+    return { payload: response };
   }
 }
