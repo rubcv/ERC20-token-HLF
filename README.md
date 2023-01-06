@@ -6,11 +6,12 @@
 - [Hyperledger Fabric network](#hyperledger-fabric-network)
 - [Run](#run)
     - [Deploy the network](#deploy-the-network)
+      - [Manually test the chaincode](#Manually-test-the-chaincode)
     - [Web Application](#web-application)
-        - [Installation](#Installation)
-        - [Running the app](#running-the-app)
+      - [Installation](#Installation)
+      - [Running the app](#running-the-app)
     - [Firefly fabconnect](#firefly-fabconnect)
-        - [Steps](#steps)
+      - [Steps](#steps)
 
 ## Pre-requisites
 
@@ -71,7 +72,25 @@ The Hyperledger Fabric network consists of:
     ```
 ![Network deployment](./img/teardown.png)
 
-## Web Application
+#### Manually test the chaincode
+
+The ERC-20 token chaincode can be tested making use of the CLI Docker container.
+In order to do so, get a shell inside the container:
+```shell
+docker exec -it cli bash
+```
+Once inside, some transactions can be submitted using the `peer chaincode` command. Note that this chaincode **needs to be initialized**, therefore the `Initialize` function must be executed first.
+
+1. Initialize
+![Init chaincode](./img/init.png)
+
+1. Mint some tokens
+![Mint tokens](./img/mint.png)
+
+1. Query the account balance
+![Query balance](./img/querybalance.png)
+
+### Web Application
 
 A Web Application is made available using **Nest.js**
 
@@ -79,20 +98,20 @@ A Web Application is made available using **Nest.js**
 cd webapp/
 ```
 
-### Installation
+#### Installation
 
 ```shell
 npm install
 ```
 
-### Running the app
+#### Running the app
 
 ```shell
 npm start
 ```
 ![Web Application](./img/webapp-start.png)
 
-## Firefly fabconnect
+### Firefly fabconnect
 
 Firefly fabconnect is a reliable REST and websocket API to interact with a Fabric network and stream events.
 
@@ -100,7 +119,7 @@ See: https://github.com/hyperledger/firefly-fabconnect
 
 Firefly fabconnect can be connected to the network and used to interact with it.
 
-### Steps:
+#### Steps:
 
 1. Pull the firefly-fabconnect repository
     ```shell
