@@ -138,10 +138,15 @@ The application listens on `localhost:3000` and has two endpoints:
       "args": ["list", "of", "arguments"]
   }
   ```
-For instance, an `Invoke` can be made via POSTMAN to Mint some tokens
+
+As mentioned before, this chaincode needs to be initialized in order to use it. Therefore, the `Initialize` function can be called via POSTMAN.
+![Web Application](./img/postinit.png)
+
+Furthermore, an `Invoke` can be made via POSTMAN to Mint some tokens
 ![Web Application](./img/postmint.png)
 
 * http://localhost:3000/query
+
   body:
   ```json
   {
