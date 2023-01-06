@@ -19,7 +19,9 @@ const totalSupplyKey = "totalSupply"
 // Define objectType names for prefix
 const allowancePrefix = "allowance"
 
-// Define key names for options
+// Define states for a conditional transfer
+const statusAccepted = "ACCEPTED"
+const statusPending = "PENDING"
 
 // SmartContract provides functions for transferring tokens between accounts
 type SmartContract struct {
@@ -31,6 +33,14 @@ type event struct {
 	From  string `json:"from"`
 	To    string `json:"to"`
 	Value int    `json:"value"`
+}
+
+// conditionalEvent provides an organized struct for emitting conditional events
+type conditionalEvent struct {
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Value  int    `json:"value"`
+	Status string `json:"status"`
 }
 
 // Mint creates new tokens and adds them to minter's account balance
@@ -576,6 +586,98 @@ func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (str
 	}
 
 	return string(bytes), nil
+}
+
+// TransferConditional creates a conditional transfer set to hashlock + timelock
+func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextInterface, recipient string, amount int) (bool, error) {
+
+	// Check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	// Check minter authorization
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return false, fmt.Errorf("failed to get MSPID: %v", err)
+	}
+	if clientMSPID != "Org1MSP" {
+		return false, fmt.Errorf("client is not authorized to mint new tokens")
+	}
+
+	return true, nil
+}
+
+// GetHashTimeLock returns the hash time lock
+func (s *SmartContract) GetHashTimeLock(ctx contractapi.TransactionContextInterface, transactionID string) (string, error) {
+
+	// Check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	hashTimeLock, err := ctx.GetStub().GetState(transactionID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get the hash time lock: %v", err)
+	}
+
+	return string(hashTimeLock), nil
+}
+
+// Claim releases the hash time lock and transfers to the "to" address
+func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface) (bool, error) {
+
+	// Check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	// Check minter authorization
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return false, fmt.Errorf("failed to get MSPID: %v", err)
+	}
+	if clientMSPID != "Org1MSP" {
+		return false, fmt.Errorf("client is not authorized to mint new tokens")
+	}
+
+	return true, nil
+}
+
+// Revert releases the hash time lock and transfers to the "from" address
+func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface) (bool, error) {
+
+	// Check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	// Check minter authorization
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return false, fmt.Errorf("failed to get MSPID: %v", err)
+	}
+	if clientMSPID != "Org1MSP" {
+		return false, fmt.Errorf("client is not authorized to mint new tokens")
+	}
+
+	return true, nil
 }
 
 // Set information for a token and intialize contract.
