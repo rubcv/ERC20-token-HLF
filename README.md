@@ -6,14 +6,14 @@
 - [Hyperledger Fabric network](#hyperledger-fabric-network)
 - [Run](#run)
     - [Deploy the network](#deploy-the-network)
-      - [Manually test the chaincode](#Manually-test-the-chaincode)
+      - [Manually test the chaincode](#manually-test-the-chaincode)
     - [Web Application](#web-application)
-      - [Installation](#Installation)
+      - [Installation](#installation)
       - [Running the app](#running-the-app)
     - [Firefly fabconnect](#firefly-fabconnect)
       - [Steps](#steps)
 
-## Pre-requisites
+## Pre-requisites
 
 1. Hyperledger Fabric
 1. Docker
@@ -24,7 +24,7 @@
 
 > Note: This has been developed using macOS, other OS have not been tested.
 
-## Hyperledger Fabric network
+## Hyperledger Fabric network
 
 The Hyperledger Fabric network consists of: 
 * One orderer
@@ -44,33 +44,33 @@ The Hyperledger Fabric network consists of:
 
 ## Run
 
-### Deploy the network
+### Deploy the network
 
 1. Install Hyperledger Fabric latest docker images and binaries.
     ```shell
     ./install-fabric.sh
     ```
     this will generate a `fabric-samples` folder inside the project directory.
-> Note: The `fabric-samples` folder is not needed, as we will only be using the downloaded Docker images to deploy the network
+    > Note: The `fabric-samples` folder is not needed, as we will only be using the downloaded Docker images to deploy the network
 
 1. Generate the network artifacts.
     ```shell
     cd network-files
     ./generate.sh
     ```
-![Network deployment](./img/generate.png)
+    ![Network deployment](./img/generate.png)
 
 1. Deploy the network.
     ```shell
     ./start.sh
     ```
-![Network deployment](./img/start.png)
+    ![Network deployment](./img/start.png)
 
 1. Teardown the network
     ```shell
     ./teardown.sh
     ```
-![Network deployment](./img/teardown.png)
+    ![Network deployment](./img/teardown.png)
 
 #### Manually test the chaincode
 
@@ -82,25 +82,25 @@ docker exec -it cli bash
 Once inside, some transactions can be submitted using the `peer chaincode` command. Note that this chaincode **needs to be initialized**, therefore the `Initialize` function must be executed first.
 
 1. Initialize
-  ```shell
-  peer chaincode invoke -o orderer.example.com:7050 --tls --cafile $ORDERER_TLS_CA -C default -n erc20token --peerAddresses $CORE_PEER_ADDRESS --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE -c '{"function":"Initialize","args":["mytoken",  "mysymbol", "2"]}' --waitForEvent
-  ```
-  ![Init chaincode](./img/init.png)
+    ```shell
+    peer chaincode invoke -o orderer.example.com:7050 --tls --cafile $ORDERER_TLS_CA -C default -n erc20token --peerAddresses $CORE_PEER_ADDRESS --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE -c '{"function":"Initialize","args":["mytoken",  "mysymbol", "2"]}' --waitForEvent
+    ```
+    ![Init chaincode](./img/init.png)
 
 1. Mint some tokens
-  ```shell
-  peer chaincode invoke -o orderer.example.com:7050 --tls --cafile $ORDERER_TLS_CA -C default -n erc20token --peerAddresses $CORE_PEER_ADDRESS --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE -c '{"function":"Mint","args":["5000"]}' --waitForEvent
-  ```
-  ![Mint tokens](./img/mint.png)
+    ```shell
+    peer chaincode invoke -o orderer.example.com:7050 --tls --cafile $ORDERER_TLS_CA -C default -n erc20token --peerAddresses $CORE_PEER_ADDRESS --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE -c '{"function":"Mint","args":["5000"]}' --waitForEvent
+    ```
+    ![Mint tokens](./img/mint.png)
 
 1. Query the account balance
-```shell
-peer chaincode query -C default -n erc20token -c '{"function":"ClientAccountBalance","Args":[]}'
+    ```shell
+    peer chaincode query -C default -n erc20token -c '{"function":"ClientAccountBalance","Args":[]}'
 
-```
-![Query balance](./img/querybalance.png)
+    ```
+    ![Query balance](./img/querybalance.png)
 
-### Web Application
+### Web Application
 
 A Web Application is made available using **Nest.js**
 
