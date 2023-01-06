@@ -9,6 +9,8 @@
     - [Web Application](#web-application)
         - [Installation](#Installation)
         - [Running the app](#running-the-app)
+    - [Firefly fabconnect](#firefly-fabconnect)
+        - [Steps](#steps)
 
 ## Pre-requisites
 
@@ -71,7 +73,7 @@ The Hyperledger Fabric network consists of:
 
 ## Web Application
 
-A Web Application is available made in **Nest.js**
+A Web Application is made available using **Nest.js**
 
 ```shell
 cd webapp/
@@ -122,30 +124,30 @@ Firefly fabconnect can be connected to the network and used to interact with it.
 
     ```json
     {
-    "maxInFlight": 10,
-    "maxTXWaitTime": 60,
-    "sendConcurrency": 25,
-    "receipts": {
-      "maxDocs": 1000,
-      "queryLimit": 100,
-      "retryInitialDelay": 5,
-      "retryTimeout": 30,
-      "leveldb": {
-        "path": "./receipts"
+      "maxInFlight": 10,
+      "maxTXWaitTime": 60,
+      "sendConcurrency": 25,
+      "receipts": {
+        "maxDocs": 1000,
+        "queryLimit": 100,
+        "retryInitialDelay": 5,
+        "retryTimeout": 30,
+        "leveldb": {
+          "path": "./receipts"
+        }
+      },
+      "events": {
+        "webhooksAllowPrivateIPs": true,
+        "leveldb": {
+          "path": "./events"
+        }
+      },
+      "http": {
+        "port": 3000
+      },
+      "rpc": {
+        "useGatewayClient": true,
+        "configPath": "../webapp/src/blockchain/utils/connection-profile.json"
       }
-    },
-    "events": {
-      "webhooksAllowPrivateIPs": true,
-      "leveldb": {
-        "path": "./events"
-      }
-    },
-    "http": {
-      "port": 3000
-    },
-    "rpc": {
-      "useGatewayClient": true,
-      "configPath": "../webapp/src/blockchain/utils/connection-profile.json"
     }
-  }
     ```
