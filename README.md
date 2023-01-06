@@ -82,12 +82,22 @@ docker exec -it cli bash
 Once inside, some transactions can be submitted using the `peer chaincode` command. Note that this chaincode **needs to be initialized**, therefore the `Initialize` function must be executed first.
 
 1. Initialize
-![Init chaincode](./img/init.png)
+  ```shell
+  peer chaincode invoke -o orderer.example.com:7050 --tls --cafile $ORDERER_TLS_CA -C default -n erc20token --peerAddresses $CORE_PEER_ADDRESS --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE -c '{"function":"Initialize","args":["mytoken",  "mysymbol", "2"]}' --waitForEvent
+  ```
+  ![Init chaincode](./img/init.png)
 
 1. Mint some tokens
-![Mint tokens](./img/mint.png)
+  ```shell
+  peer chaincode invoke -o orderer.example.com:7050 --tls --cafile $ORDERER_TLS_CA -C default -n erc20token --peerAddresses $CORE_PEER_ADDRESS --tlsRootCertFiles $CORE_PEER_TLS_ROOTCERT_FILE -c '{"function":"Mint","args":["5000"]}' --waitForEvent
+  ```
+  ![Mint tokens](./img/mint.png)
 
 1. Query the account balance
+```shell
+peer chaincode query -C default -n erc20token -c '{"function":"ClientAccountBalance","Args":[]}'
+
+```
 ![Query balance](./img/querybalance.png)
 
 ### Web Application
@@ -110,6 +120,37 @@ npm install
 npm start
 ```
 ![Web Application](./img/webapp-start.png)
+
+#### Using the Web Application
+
+Transactions can be submitted via the web application. The Nest.js webapp supports both invokes and queries to the blockchain.
+
+The application listens on `localhost:3000` and has two endpoints:
+
+##### Endpoints
+
+* http://localhost:3000/invoke
+
+  body:
+  ```json
+  {
+      "function": "FunctionName",
+      "args": ["list", "of", "arguments"]
+  }
+  ```
+For instance, an `Invoke` can be made via POSTMAN to Mint some tokens
+![Web Application](./img/postmint.png)
+
+* http://localhost:3000/query
+  body:
+  ```json
+  {
+      "function": "FunctionName",
+      "args": ["list", "of", "arguments"]
+  }
+  ```
+  Similarly, a `Query` can be made via POSTMAN to get the account balance
+![Web Application](./img/getbalance.png)
 
 ### Firefly fabconnect
 
