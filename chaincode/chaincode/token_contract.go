@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -19,10 +20,6 @@ const totalSupplyKey = "totalSupply"
 // Define objectType names for prefix
 const allowancePrefix = "allowance"
 
-// Define states for a conditional transfer
-const statusAccepted = "ACCEPTED"
-const statusPending = "PENDING"
-
 // SmartContract provides functions for transferring tokens between accounts
 type SmartContract struct {
 	contractapi.Contract
@@ -35,14 +32,6 @@ type event struct {
 	Value int    `json:"value"`
 }
 
-// conditionalEvent provides an organized struct for emitting conditional events
-type conditionalEvent struct {
-	From   string `json:"from"`
-	To     string `json:"to"`
-	Value  int    `json:"value"`
-	Status string `json:"status"`
-}
-
 // Mint creates new tokens and adds them to minter's account balance
 // This function triggers a Transfer event
 func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount int) error {
@@ -50,7 +39,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -148,7 +137,7 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -244,7 +233,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -281,7 +270,7 @@ func (s *SmartContract) BalanceOf(ctx contractapi.TransactionContextInterface, a
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -306,7 +295,7 @@ func (s *SmartContract) ClientAccountBalance(ctx contractapi.TransactionContextI
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -339,7 +328,7 @@ func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterf
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -360,7 +349,7 @@ func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface)
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -394,7 +383,7 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spe
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -440,7 +429,7 @@ func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, o
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -479,7 +468,7 @@ func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -552,7 +541,7 @@ func (s *SmartContract) Name(ctx contractapi.TransactionContextInterface) (strin
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -574,7 +563,7 @@ func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (str
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -589,95 +578,186 @@ func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (str
 }
 
 // TransferConditional creates a conditional transfer set to hashlock + timelock
-func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextInterface, recipient string, amount int) (bool, error) {
+func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextInterface, recipient string, amount int, expirationSeconds int, hash string) error {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Check minter authorization
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return false, fmt.Errorf("failed to get MSPID: %v", err)
+		return fmt.Errorf("failed to get MSPID: %v", err)
 	}
 	if clientMSPID != "Org1MSP" {
-		return false, fmt.Errorf("client is not authorized to mint new tokens")
+		return fmt.Errorf("client is not authorized to mint new tokens")
 	}
 
-	return true, nil
+	// Get client current balance
+	balanceBytes, err := ctx.GetStub().GetState(clientMSPID)
+	if err != nil {
+		return fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if balanceBytes == nil {
+		return fmt.Errorf("the account %s does not exist", clientMSPID)
+	}
+
+	// Check that the client cannot transfer more than it's current balance
+	balance, _ := strconv.Atoi(string(balanceBytes)) // Error handling not needed since Itoa() was used when setting the account balance, guaranteeing it was an integer.
+	if balance < amount {
+		return fmt.Errorf("the account %s does not have enough funds", clientMSPID)
+	}
+
+	// Get the transaction creation's timestamp
+	tx_time, err := ctx.GetStub().GetTxTimestamp()
+	if err != nil {
+		return fmt.Errorf("failed to obtain transaction creation timestamp: %v", err)
+	}
+
+	// Set the timelock to the transaction creation's timestamp + the expiration time received
+	timelock := int(tx_time.GetSeconds()) + expirationSeconds
+	// Set the hashlock
+	hashlock := hash + "_" + recipient
+
+	// Create the hashed transaction along with it's expiration time and amount to be transfered
+	err = ctx.GetStub().PutState(hashlock, []byte(fmt.Sprint(timelock)+"_"+fmt.Sprint(amount)))
+	if err != nil {
+		return fmt.Errorf("error creating the conditional transfer: %v", err)
+	}
+
+	return nil
 }
 
 // GetHashTimeLock returns the hash time lock
-func (s *SmartContract) GetHashTimeLock(ctx contractapi.TransactionContextInterface, transactionID string) (string, error) {
+func (s *SmartContract) GetHashTimeLock(ctx contractapi.TransactionContextInterface, hashlock string) (string, error) {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
-	hashTimeLock, err := ctx.GetStub().GetState(transactionID)
+	hashtimelock, err := ctx.GetStub().GetState(hashlock)
 	if err != nil {
 		return "", fmt.Errorf("failed to get the hash time lock: %v", err)
 	}
 
-	return string(hashTimeLock), nil
+	return string(hashtimelock), nil
 }
 
 // Claim releases the hash time lock and transfers to the "to" address
-func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface) (bool, error) {
+func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface, password string, hashlock string, recipient string) error {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Check minter authorization
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return false, fmt.Errorf("failed to get MSPID: %v", err)
+		return fmt.Errorf("failed to get MSPID: %v", err)
 	}
 	if clientMSPID != "Org1MSP" {
-		return false, fmt.Errorf("client is not authorized to mint new tokens")
+		return fmt.Errorf("client is not authorized to mint new tokens")
 	}
 
-	return true, nil
+	// Get the transaction with the corresponding hashlock
+	transaction, err := ctx.GetStub().GetState(hashlock)
+	if err != nil {
+		return fmt.Errorf("failed to get the transaction with the corresponding hashlock: %v", err)
+	}
+	tx := strings.Split(string(transaction), "_")
+	expirationTime := tx[0]
+	expirationSeconds, _ := strconv.Atoi(expirationTime)
+	tx_amount := tx[1]
+	amount, _ := strconv.Atoi(tx_amount)
+
+	// Get the transaction creation's timestamp
+	tx_time, err := ctx.GetStub().GetTxTimestamp()
+	if err != nil {
+		return fmt.Errorf("failed to obtain transaction creation timestamp: %v", err)
+	}
+
+	// Check if the time has not expired
+	if int(tx_time.Seconds) <= expirationSeconds {
+		// If conditions are met, claim the tokens from "recipient"
+		err := transferHelper(ctx, recipient, clientMSPID, amount)
+		if err != nil {
+			return fmt.Errorf("failed to claim the tokens from %v: %v", recipient, err)
+		}
+
+		hash := strings.Split(string(hashlock), "_")
+		err = ctx.GetStub().PutState(hash[0], []byte(password))
+		if err != nil {
+			return fmt.Errorf("error storing the password: %v", err)
+		}
+	}
+
+	return nil
 }
 
 // Revert releases the hash time lock and transfers to the "from" address
-func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface) (bool, error) {
+func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hashlock string, recipient string) error {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Check minter authorization
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return false, fmt.Errorf("failed to get MSPID: %v", err)
+		return fmt.Errorf("failed to get MSPID: %v", err)
 	}
 	if clientMSPID != "Org1MSP" {
-		return false, fmt.Errorf("client is not authorized to mint new tokens")
+		return fmt.Errorf("client is not authorized to mint new tokens")
 	}
 
-	return true, nil
+	// Get the transaction with the corresponding hashlock
+	transaction, err := ctx.GetStub().GetState(hashlock)
+	if err != nil {
+		return fmt.Errorf("failed to get the transaction with the corresponding hashlock: %v", err)
+	}
+
+	tx := strings.Split(string(transaction), "_")
+	expirationTime := tx[0]
+	expirationSeconds, _ := strconv.Atoi(expirationTime)
+	tx_amount := tx[1]
+	amount, _ := strconv.Atoi(tx_amount)
+
+	// Get the transaction creation's timestamp
+	tx_time, err := ctx.GetStub().GetTxTimestamp()
+	if err != nil {
+		return fmt.Errorf("failed to obtain transaction creation timestamp: %v", err)
+	}
+
+	// Check that the time has expired
+	if int(tx_time.Seconds) > expirationSeconds {
+		// If conditions are met, refund the tokens
+		err := transferHelper(ctx, recipient, clientMSPID, amount)
+		if err != nil {
+			return fmt.Errorf("failed to refund the tokens: %v", err)
+		}
+	}
+
+	return nil
 }
 
 // Set information for a token and intialize contract.
