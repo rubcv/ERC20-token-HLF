@@ -140,7 +140,7 @@ npm start
 
 ##### Fabric CA user creation
 Whenever the web application is started, the user for the application is registered and enrolled on the Fabric CA making use of the Fabric SDK.
-The configuration is specified in `webapp/src/blockchain/fabric.ts` that being the user ID to be used, the channel and chainode to connect to and the path in which the wallet of the user will be generated.
+The configuration is specified in `webapp/src/blockchain/fabric.ts`. That being the user ID, the channel and chainode names to connect to and the path in which the wallet of the user will be generated.
 
 ![Web Application](./img/user.png)
 
