@@ -196,7 +196,7 @@ Firefly fabconnect can be connected to the network and used to interact with it.
     ```
 1. Firefly fabconnect needs 2 configuration files: `firefily-fabconnect-config.json` with all the Firefly configuration, and `connection-profile.json` with the Hyperledger Fabric blockchain network configuration.
     `firefly-fabconnect-config.json` can be found inside the `firefly-fabconnect/` folder of this repository.
-    `connection-profile.json` is the one used by the Nest.js WebAPP (fabric SDK) to connect to the blockchain.
+    `connection-profile.json` is the one used by the Nest.js WebAPP (Fabric SDK) to connect to the blockchain.
 
     Launch the connector:
     ```shell
