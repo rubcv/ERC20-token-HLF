@@ -2,6 +2,7 @@
 
 ## Table of contents
 
+- [Description](#description)
 - [Pre-requisites](#pre-requisites)
 - [Hyperledger Fabric network](#hyperledger-fabric-network)
 - [Run](#run)
@@ -12,6 +13,10 @@
       - [Running the app](#running-the-app)
     - [Firefly fabconnect](#firefly-fabconnect)
       - [Steps](#steps)
+
+## Description
+
+![Network diagram](./img/network.png)
 
 ## Pre-requisites
 
