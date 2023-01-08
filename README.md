@@ -16,7 +16,8 @@
     - [Firefly fabconnect](#firefly-fabconnect)
       - [Steps](#steps)
 
-## Description
+## Description
+
 ERC-20 token Smart Contract that implements methods for Hash TimeLock transactions. Deployed on a Hyperledger Fabric network and with a REST API made in Nest.js to interact with the network (submit transactions).
 
 Integration with Hyperledger Firefly fabconnect is provided.
