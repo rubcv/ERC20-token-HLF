@@ -5,16 +5,15 @@
 - [Description](#description)
 - [Pre-requisites](#pre-requisites)
 - [Hyperledger Fabric network](#hyperledger-fabric-network)
-- [Run](#run)
-    - [Deploy the network](#deploy-the-network)
-      - [Manually test the chaincode](#manually-test-the-chaincode)
-    - [Web Application](#web-application)
-      - [Installation](#installation)
-      - [Running the app](#running-the-app)
-        - [Fabric CA user creation](#fabric-ca-user-creation)
-        - [Transactions](#transactions)
-    - [Firefly fabconnect](#firefly-fabconnect)
-      - [Steps](#steps)
+- [Deploy the network](#deploy-the-network)
+  - [Manually test the chaincode](#manually-test-the-chaincode)
+- [Web Application](#web-application)
+  - [Installation](#installation)
+  - [Running the app](#running-the-app)
+    - [Fabric CA user creation](#fabric-ca-user-creation)
+    - [Transactions](#transactions)
+- [Firefly fabconnect](#firefly-fabconnect)
+  - [Steps](#steps)
 
 ## Description
 
@@ -56,10 +55,7 @@ The Hyperledger Fabric network consists of:
 
 ![Network deployment](./img/topology.png)
 
-
-## Run
-
-### Deploy the network
+## Deploy the network
 
 1. Install Hyperledger Fabric latest docker images and binaries.
     ```shell
@@ -87,7 +83,7 @@ The Hyperledger Fabric network consists of:
     ```
     ![Network deployment](./img/teardown.png)
 
-#### Manually test the chaincode
+### Manually test the chaincode
 
 The ERC-20 token chaincode can be tested making use of the CLI Docker container.
 In order to do so, get a shell inside the container:
@@ -115,7 +111,7 @@ Once inside, some transactions can be submitted using the `peer chaincode` comma
     ```
     ![Query balance](./img/querybalance.png)
 
-### Web Application
+## Web Application
 
 A Web Application is made available using **Nest.js**
 
@@ -123,28 +119,29 @@ A Web Application is made available using **Nest.js**
 cd webapp/
 ```
 
-#### Installation
+### Installation
 
 ```shell
 npm install
 ```
 
-#### Running the app
+### Running the app
 
 ```shell
 npm start
 ```
 ![Web Application](./img/webapp-start.png)
 
-#### Using the Web Application
+### Using the Web Application
 
-##### Fabric CA user creation
+#### Fabric CA user creation
+
 Whenever the web application is started, the user for the application is registered and enrolled on the Fabric CA making use of the Fabric SDK.
 The configuration is specified in `webapp/src/blockchain/fabric.ts`. That being the user ID, the channel and chainode names to connect to and the path in which the wallet of the user will be generated.
 
 ![Web Application](./img/user.png)
 
-##### Transactions
+#### Transactions
 
 Transactions can be submitted via the web application. The Nest.js webapp supports both invokes and queries to the blockchain.
 
@@ -178,7 +175,7 @@ Furthermore, an `Invoke` can be made via POSTMAN to Mint some tokens
   Similarly, a `Query` can be made via POSTMAN to get the account balance
 ![Web Application](./img/getbalance.png)
 
-### Firefly fabconnect
+## Firefly fabconnect
 
 Firefly fabconnect is a reliable REST and websocket API to interact with a Fabric network and stream events.
 
@@ -186,7 +183,7 @@ See: https://github.com/hyperledger/firefly-fabconnect
 
 Firefly fabconnect can be connected to the network and used to interact with it.
 
-#### Steps:
+### Steps:
 
 1. Pull the firefly-fabconnect repository
     ```shell
