@@ -596,7 +596,7 @@ func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (str
 }
 
 // TransferConditional creates a conditional transfer set to hashlock + timelock
-func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextInterface, recipient string, amount int, expirationSeconds int, hash string) (string, error) {
+func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextInterface, recipient string, amount int, expirationSeconds int, publicKey string) (string, error) {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
@@ -644,15 +644,15 @@ func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextIn
 
 	// Set the hashlock
 	var hashlock HashLock
-	hashlock.Hash = hash
+	hashlock.Hash = publicKey
 	hashlock.Recipient = recipient
 
-	pub_key, err := bytesToPublicKey([]byte(hash))
+	pub_key, err := bytesToPublicKey([]byte(publicKey))
 	if err != nil {
 		return "", fmt.Errorf("error casting the public key: %v", err)
 	}
 
-	encryptedBytes, err := rsa.EncryptOAEP(
+	hash, err := rsa.EncryptOAEP(
 		sha256.New(),
 		rand.Reader,
 		pub_key,
@@ -663,12 +663,12 @@ func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextIn
 	}
 
 	// Create the hashed lock transaction along with it's expiration time and amount to be transfered
-	err = ctx.GetStub().PutState(string(encryptedBytes), []byte(fmt.Sprint(timelock.ExpirationTime)+"_"+fmt.Sprint(timelock.Amount)))
+	err = ctx.GetStub().PutState(string(hash), []byte(fmt.Sprint(timelock.ExpirationTime)+"_"+fmt.Sprint(timelock.Amount)))
 	if err != nil {
 		return "", fmt.Errorf("error creating the conditional transfer: %v", err)
 	}
 
-	return string(encryptedBytes), nil
+	return string(hash), nil
 }
 
 // GetHashTimeLock returns the hash time lock

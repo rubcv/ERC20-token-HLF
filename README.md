@@ -18,20 +18,21 @@
 
 ## Description
 
-ERC-20 token Smart Contract that implements methods for Hash TimeLock transactions. Deployed on a Hyperledger Fabric network and with a REST API made in Nest.js to interact with the network (submit transactions).
+ERC-20 token Smart Contract that implements methods for Hash TimeLock transactions. Deployed on a Hyperledger Fabric network and with a REST API made in **Nest.js** to interact with the network (submit transactions).
 
-Integration with Hyperledger Firefly fabconnect is provided.
+Integration with **Hyperledger Firefly** fabconnect is provided.
 
 ![Network diagram](./img/network.png)
 
 ## Pre-requisites
 
-1. Hyperledger Fabric
-1. Docker
-1. Docker-Compose
-1. Golang
-1. NodeJS / TypeScript
-1. npm
+1. Hyperledger Fabric v2.4
+1. Hyperledger Fabric CA v1.5
+1. Docker v20.10
+1. Docker-Compose v2.14.0
+1. Golang v1.19.4
+1. NodeJS / TypeScript v16.13.0
+1. npm v9.2.0
 
 > Note: This has been developed using macOS, other OS have not been tested.
 
