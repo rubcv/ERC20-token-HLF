@@ -1,7 +1,13 @@
 package chaincode
 
 import (
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"log"
@@ -590,45 +596,45 @@ func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (str
 }
 
 // TransferConditional creates a conditional transfer set to hashlock + timelock
-func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextInterface, recipient string, amount int, expirationSeconds int, hash string) error {
+func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextInterface, recipient string, amount int, expirationSeconds int, hash string) (string, error) {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Check minter authorization
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return fmt.Errorf("failed to get MSPID: %v", err)
+		return "", fmt.Errorf("failed to get MSPID: %v", err)
 	}
 	if clientMSPID != "Org1MSP" {
-		return fmt.Errorf("client is not authorized to mint new tokens")
+		return "", fmt.Errorf("client is not authorized to mint new tokens")
 	}
 
 	// Get client current balance
 	balanceBytes, err := ctx.GetStub().GetState(clientMSPID)
 	if err != nil {
-		return fmt.Errorf("failed to read from world state: %v", err)
+		return "", fmt.Errorf("failed to read from world state: %v", err)
 	}
 	if balanceBytes == nil {
-		return fmt.Errorf("the account %s does not exist", clientMSPID)
+		return "", fmt.Errorf("the account %s does not exist", clientMSPID)
 	}
 
 	// Check that the client cannot transfer more than it's current balance
 	balance, _ := strconv.Atoi(string(balanceBytes)) // Error handling not needed since Itoa() was used when setting the account balance, guaranteeing it was an integer.
 	if balance < amount {
-		return fmt.Errorf("the account %s does not have enough funds", clientMSPID)
+		return "", fmt.Errorf("the account %s does not have enough funds", clientMSPID)
 	}
 
 	// Get the transaction creation's timestamp
-	tx_time, err := ctx.GetStub().GetTxTimestamp()
+	tx_time, err := ctx.GetStub().GetTxTimestamp() // timestamp data structure, containing integers for seconds and nanos since 1970
 	if err != nil {
-		return fmt.Errorf("failed to obtain transaction creation timestamp: %v", err)
+		return "", fmt.Errorf("failed to obtain transaction creation timestamp: %v", err)
 	}
 
 	// Set the timelock to the transaction creation's timestamp + the expiration time received
@@ -641,13 +647,28 @@ func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextIn
 	hashlock.Hash = hash
 	hashlock.Recipient = recipient
 
-	// Create the hashed transaction along with it's expiration time and amount to be transfered
-	err = ctx.GetStub().PutState(hashlock.Hash+"_"+hashlock.Recipient, []byte(fmt.Sprint(timelock.ExpirationTime)+"_"+fmt.Sprint(timelock.Amount)))
+	pub_key, err := bytesToPublicKey([]byte(hash))
 	if err != nil {
-		return fmt.Errorf("error creating the conditional transfer: %v", err)
+		return "", fmt.Errorf("error casting the public key: %v", err)
 	}
 
-	return nil
+	encryptedBytes, err := rsa.EncryptOAEP(
+		sha256.New(),
+		rand.Reader,
+		pub_key,
+		[]byte(hashlock.Hash+"_"+hashlock.Recipient),
+		nil)
+	if err != nil {
+		return "", fmt.Errorf("error creating the hashlock: %v", err)
+	}
+
+	// Create the hashed lock transaction along with it's expiration time and amount to be transfered
+	err = ctx.GetStub().PutState(string(encryptedBytes), []byte(fmt.Sprint(timelock.ExpirationTime)+"_"+fmt.Sprint(timelock.Amount)))
+	if err != nil {
+		return "", fmt.Errorf("error creating the conditional transfer: %v", err)
+	}
+
+	return string(encryptedBytes), nil
 }
 
 // GetHashTimeLock returns the hash time lock
@@ -671,63 +692,7 @@ func (s *SmartContract) GetHashTimeLock(ctx contractapi.TransactionContextInterf
 }
 
 // Claim releases the hash time lock and transfers to the "to" address
-func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface, password string, hash string, recipient string) error {
-
-	// Check if contract has been intilized first
-	initialized, err := checkInitialized(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
-	}
-	if !initialized {
-		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
-	}
-
-	// Check minter authorization
-	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
-	if err != nil {
-		return fmt.Errorf("failed to get MSPID: %v", err)
-	}
-	if clientMSPID != "Org1MSP" {
-		return fmt.Errorf("client is not authorized to mint new tokens")
-	}
-
-	// Get the transaction with the corresponding hashlock
-	transaction, err := ctx.GetStub().GetState(hash)
-	if err != nil {
-		return fmt.Errorf("failed to get the transaction with the corresponding hashlock: %v", err)
-	}
-	tx := strings.Split(string(transaction), "_")
-	tx_expirationTime := tx[0]
-	tx_amount := tx[1]
-	var timelock TimeLock
-	timelock.ExpirationTime, _ = strconv.Atoi(tx_expirationTime)
-	timelock.Amount, _ = strconv.Atoi(tx_amount)
-
-	// Get the transaction creation's timestamp
-	tx_time, err := ctx.GetStub().GetTxTimestamp()
-	if err != nil {
-		return fmt.Errorf("failed to obtain transaction creation timestamp: %v", err)
-	}
-
-	// Check if the time has not expired
-	if int(tx_time.Seconds) <= timelock.ExpirationTime {
-		// If conditions are met, claim the tokens from "recipient"
-		err := transferHelper(ctx, recipient, clientMSPID, timelock.Amount)
-		if err != nil {
-			return fmt.Errorf("failed to claim the tokens from %v: %v", recipient, err)
-		}
-
-		err = ctx.GetStub().PutState(hash, []byte(password))
-		if err != nil {
-			return fmt.Errorf("error storing the password: %v", err)
-		}
-	}
-
-	return nil
-}
-
-// Revert releases the hash time lock and transfers to the "from" address
-func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hash string, recipient string) error {
+func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface, hash string, password string, recipient string) error {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
@@ -750,7 +715,73 @@ func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hash
 	// Get the transaction with the corresponding hash
 	transaction, err := ctx.GetStub().GetState(hash)
 	if err != nil {
-		return fmt.Errorf("failed to get the transaction with the corresponding hashlock: %v", err)
+		return fmt.Errorf("failed to get the transaction with the corresponding hash: %v", err)
+	}
+	tx := strings.Split(string(transaction), "_")
+	tx_expirationTime := tx[0]
+	tx_amount := tx[1]
+	var timelock TimeLock
+	timelock.ExpirationTime, _ = strconv.Atoi(tx_expirationTime)
+	timelock.Amount, _ = strconv.Atoi(tx_amount)
+
+	// Get the transaction creation's timestamp
+	tx_time, err := ctx.GetStub().GetTxTimestamp()
+	if err != nil {
+		return fmt.Errorf("failed to obtain transaction creation timestamp: %v", err)
+	}
+
+	// Check if the time has not expired
+	if int(tx_time.Seconds) <= timelock.ExpirationTime {
+		// If conditions are met, claim the tokens from "recipient"
+		privateKey, err := bytesToPrivateKey([]byte(password))
+		if err != nil {
+			return fmt.Errorf("error casting the private key: %v", err)
+		}
+		// Release the lock
+		_, err = privateKey.Decrypt(nil, []byte(hash), &rsa.OAEPOptions{Hash: crypto.SHA256})
+		if err != nil {
+			return fmt.Errorf("failed to release the hashlock: %v", err)
+		}
+		// Claim the tokens
+		err = transferHelper(ctx, recipient, clientMSPID, timelock.Amount)
+		if err != nil {
+			return fmt.Errorf("failed to claim the tokens from %v: %v", recipient, err)
+		}
+		// Store the password such that the swap can be made
+		err = ctx.GetStub().PutState(hash, []byte(password))
+		if err != nil {
+			return fmt.Errorf("error storing the password: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// Revert releases the hash time lock and transfers to the "from" address
+func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hash string, origin string) error {
+
+	// Check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
+	}
+	if !initialized {
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	// Check minter authorization
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return fmt.Errorf("failed to get MSPID: %v", err)
+	}
+	if clientMSPID != "Org1MSP" {
+		return fmt.Errorf("client is not authorized to mint new tokens")
+	}
+
+	// Get the transaction with the corresponding hash
+	transaction, err := ctx.GetStub().GetState(hash)
+	if err != nil {
+		return fmt.Errorf("failed to get the transaction with the corresponding hash: %v", err)
 	}
 
 	tx := strings.Split(string(transaction), "_")
@@ -769,7 +800,7 @@ func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hash
 	// Check that the time has expired
 	if int(tx_time.Seconds) > timelock.ExpirationTime {
 		// If conditions are met, refund the tokens
-		err := transferHelper(ctx, recipient, clientMSPID, timelock.Amount)
+		err := transferHelper(ctx, origin, clientMSPID, timelock.Amount)
 		if err != nil {
 			return fmt.Errorf("failed to refund the tokens: %v", err)
 		}
@@ -928,4 +959,60 @@ func sub(b int, q int) (int, error) {
 	}
 
 	return diff, nil
+}
+
+// privateKeyToBytes private key to bytes
+func privateKeyToBytes(priv *rsa.PrivateKey) []byte {
+	privBytes := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(priv),
+		},
+	)
+
+	return privBytes
+}
+
+// bytesToPrivateKey bytes to private key
+func bytesToPrivateKey(priv []byte) (*rsa.PrivateKey, error) {
+	block, _ := pem.Decode(priv)
+	enc := x509.IsEncryptedPEMBlock(block)
+	b := block.Bytes
+	var err error
+	if enc {
+		b, err = x509.DecryptPEMBlock(block, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error decrypting the PEM block")
+		}
+	}
+	key, err := x509.ParsePKCS1PrivateKey(b)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing the PKCS1 private key")
+	}
+
+	return key, nil
+}
+
+// bytesToPublicKey bytes to public key
+func bytesToPublicKey(pub []byte) (*rsa.PublicKey, error) {
+	block, _ := pem.Decode(pub)
+	enc := x509.IsEncryptedPEMBlock(block)
+	b := block.Bytes
+	var err error
+	if enc {
+		b, err = x509.DecryptPEMBlock(block, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error decrypting the PEM block")
+		}
+	}
+	ifc, err := x509.ParsePKIXPublicKey(b)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing the PKIX public key")
+	}
+	key, ok := ifc.(*rsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("error obtaining the key")
+	}
+
+	return key, nil
 }
