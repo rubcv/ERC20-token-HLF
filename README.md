@@ -11,10 +11,15 @@
     - [Web Application](#web-application)
       - [Installation](#installation)
       - [Running the app](#running-the-app)
+        - [Fabric CA user creation](#fabric-ca-user-creation)
+        - [Transactions](#transactions)
     - [Firefly fabconnect](#firefly-fabconnect)
       - [Steps](#steps)
 
 ## Description
+ERC-20 token Smart Contract that implements methods for Hash TimeLock transactions. Deployed on a Hyperledger Fabric network and with a REST API made in Nest.js to interact with the network (submit transactions).
+
+Integration with Hyperledger Firefly fabconnect is provided.
 
 ![Network diagram](./img/network.png)
 
@@ -128,11 +133,17 @@ npm start
 
 #### Using the Web Application
 
+##### Fabric CA user creation
+Whenever the web application is started, the user for the application is registered and enrolled on the Fabric CA making use of the Fabric SDK.
+The configuration is specified in `webapp/src/blockchain/fabric.ts` that being the user ID to be used, the channel and chainode to connect to and the path in which the wallet of the user will be generated.
+
+![Web Application](./img/user.png)
+
+##### Transactions
+
 Transactions can be submitted via the web application. The Nest.js webapp supports both invokes and queries to the blockchain.
 
 The application listens on `localhost:3000` and has two endpoints:
-
-##### Endpoints
 
 * http://localhost:3000/invoke
 
