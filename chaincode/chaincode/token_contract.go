@@ -32,6 +32,18 @@ type event struct {
 	Value int    `json:"value"`
 }
 
+// Define the hashlock object
+type HashLock struct {
+	Hash      string `json:"hash"`
+	Recipient string `json:"recipient"`
+}
+
+// Define the timelock object
+type TimeLock struct {
+	ExpirationTime int `json:"expirationTime"`
+	Amount         int `json:"amount"`
+}
+
 // Mint creates new tokens and adds them to minter's account balance
 // This function triggers a Transfer event
 func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount int) error {
@@ -620,12 +632,17 @@ func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextIn
 	}
 
 	// Set the timelock to the transaction creation's timestamp + the expiration time received
-	timelock := int(tx_time.GetSeconds()) + expirationSeconds
+	var timelock TimeLock
+	timelock.ExpirationTime = int(tx_time.GetSeconds()) + expirationSeconds
+	timelock.Amount = amount
+
 	// Set the hashlock
-	hashlock := hash + "_" + recipient
+	var hashlock HashLock
+	hashlock.Hash = hash
+	hashlock.Recipient = recipient
 
 	// Create the hashed transaction along with it's expiration time and amount to be transfered
-	err = ctx.GetStub().PutState(hashlock, []byte(fmt.Sprint(timelock)+"_"+fmt.Sprint(amount)))
+	err = ctx.GetStub().PutState(hashlock.Hash+"_"+hashlock.Recipient, []byte(fmt.Sprint(timelock.ExpirationTime)+"_"+fmt.Sprint(timelock.Amount)))
 	if err != nil {
 		return fmt.Errorf("error creating the conditional transfer: %v", err)
 	}
@@ -634,7 +651,7 @@ func (s *SmartContract) TransferConditional(ctx contractapi.TransactionContextIn
 }
 
 // GetHashTimeLock returns the hash time lock
-func (s *SmartContract) GetHashTimeLock(ctx contractapi.TransactionContextInterface, hashlock string) (string, error) {
+func (s *SmartContract) GetHashTimeLock(ctx contractapi.TransactionContextInterface, hash string) (string, error) {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
@@ -645,7 +662,7 @@ func (s *SmartContract) GetHashTimeLock(ctx contractapi.TransactionContextInterf
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
-	hashtimelock, err := ctx.GetStub().GetState(hashlock)
+	hashtimelock, err := ctx.GetStub().GetState(hash)
 	if err != nil {
 		return "", fmt.Errorf("failed to get the hash time lock: %v", err)
 	}
@@ -654,7 +671,7 @@ func (s *SmartContract) GetHashTimeLock(ctx contractapi.TransactionContextInterf
 }
 
 // Claim releases the hash time lock and transfers to the "to" address
-func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface, password string, hashlock string, recipient string) error {
+func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface, password string, hash string, recipient string) error {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
@@ -675,15 +692,16 @@ func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface, passw
 	}
 
 	// Get the transaction with the corresponding hashlock
-	transaction, err := ctx.GetStub().GetState(hashlock)
+	transaction, err := ctx.GetStub().GetState(hash)
 	if err != nil {
 		return fmt.Errorf("failed to get the transaction with the corresponding hashlock: %v", err)
 	}
 	tx := strings.Split(string(transaction), "_")
-	expirationTime := tx[0]
-	expirationSeconds, _ := strconv.Atoi(expirationTime)
+	tx_expirationTime := tx[0]
 	tx_amount := tx[1]
-	amount, _ := strconv.Atoi(tx_amount)
+	var timelock TimeLock
+	timelock.ExpirationTime, _ = strconv.Atoi(tx_expirationTime)
+	timelock.Amount, _ = strconv.Atoi(tx_amount)
 
 	// Get the transaction creation's timestamp
 	tx_time, err := ctx.GetStub().GetTxTimestamp()
@@ -692,15 +710,14 @@ func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface, passw
 	}
 
 	// Check if the time has not expired
-	if int(tx_time.Seconds) <= expirationSeconds {
+	if int(tx_time.Seconds) <= timelock.ExpirationTime {
 		// If conditions are met, claim the tokens from "recipient"
-		err := transferHelper(ctx, recipient, clientMSPID, amount)
+		err := transferHelper(ctx, recipient, clientMSPID, timelock.Amount)
 		if err != nil {
 			return fmt.Errorf("failed to claim the tokens from %v: %v", recipient, err)
 		}
 
-		hash := strings.Split(string(hashlock), "_")
-		err = ctx.GetStub().PutState(hash[0], []byte(password))
+		err = ctx.GetStub().PutState(hash, []byte(password))
 		if err != nil {
 			return fmt.Errorf("error storing the password: %v", err)
 		}
@@ -710,7 +727,7 @@ func (s *SmartContract) Claim(ctx contractapi.TransactionContextInterface, passw
 }
 
 // Revert releases the hash time lock and transfers to the "from" address
-func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hashlock string, recipient string) error {
+func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hash string, recipient string) error {
 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
@@ -730,17 +747,18 @@ func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hash
 		return fmt.Errorf("client is not authorized to mint new tokens")
 	}
 
-	// Get the transaction with the corresponding hashlock
-	transaction, err := ctx.GetStub().GetState(hashlock)
+	// Get the transaction with the corresponding hash
+	transaction, err := ctx.GetStub().GetState(hash)
 	if err != nil {
 		return fmt.Errorf("failed to get the transaction with the corresponding hashlock: %v", err)
 	}
 
 	tx := strings.Split(string(transaction), "_")
-	expirationTime := tx[0]
-	expirationSeconds, _ := strconv.Atoi(expirationTime)
+	tx_expirationTime := tx[0]
 	tx_amount := tx[1]
-	amount, _ := strconv.Atoi(tx_amount)
+	var timelock TimeLock
+	timelock.ExpirationTime, _ = strconv.Atoi(tx_expirationTime)
+	timelock.Amount, _ = strconv.Atoi(tx_amount)
 
 	// Get the transaction creation's timestamp
 	tx_time, err := ctx.GetStub().GetTxTimestamp()
@@ -749,9 +767,9 @@ func (s *SmartContract) Revert(ctx contractapi.TransactionContextInterface, hash
 	}
 
 	// Check that the time has expired
-	if int(tx_time.Seconds) > expirationSeconds {
+	if int(tx_time.Seconds) > timelock.ExpirationTime {
 		// If conditions are met, refund the tokens
-		err := transferHelper(ctx, recipient, clientMSPID, amount)
+		err := transferHelper(ctx, recipient, clientMSPID, timelock.Amount)
 		if err != nil {
 			return fmt.Errorf("failed to refund the tokens: %v", err)
 		}
