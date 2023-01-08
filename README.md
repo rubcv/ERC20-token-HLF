@@ -18,9 +18,12 @@
 
 ## Description
 
-ERC-20 token Smart Contract that implements methods for Hash TimeLock transactions. Deployed on a Hyperledger Fabric network and with a REST API made in **Nest.js** to interact with the network (submit transactions).
+This project has been developed using **Hyperledger Fabric** private blockchain. The blockchain has only one organization and the network topology can be seen in the image below.
+In addition, a REST API developed in **Nest.js** is available that allows connecting to the blockchain through the **Fabric SDK**, registering and enrolling a user through the **Fabric CA**, and making invocations and queries to the blockchain.
 
-Integration with **Hyperledger Firefly** fabconnect is provided.
+**Hyperledger Firefly fabconnect** can be connected to the blockchain using the configuration file that is available in the project.
+
+Along with the blockchain, an **ERC20-token Smart Contract** is deployed which implements **Hash TimeLock (HTLC)** functions, those functions allow transfers to be blocked until the requirements are met, thus achieving atomic swaps.
 
 ![Network diagram](./img/network.png)
 
